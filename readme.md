@@ -1,4 +1,6 @@
 # Lab2 - Gradle Project
+# Student name: Simbarashe Vhirozho
+# Student ID: 47147
 
 ## Installation
 
@@ -39,5 +41,5 @@ The server will start at [http://localhost:8080](http://localhost:8080).
 - Check completed todos
 
 ## Usage
-Interact with the API via browser or API tools (e.g., Postman) at `http://localhost:8080`.
 
+Open your browser and navigate to `http://localhost:8080` to use the application. The server generates HTML content for all features.
