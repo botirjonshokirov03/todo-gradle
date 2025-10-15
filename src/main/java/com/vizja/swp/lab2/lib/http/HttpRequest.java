@@ -10,6 +10,7 @@ public class HttpRequest {
     private final HttpMethod method;
     private final String path;
     private final String version;
+    private String query;
     private final Map<String, String> headers = new HashMap<>();
     private String body;
 
@@ -22,11 +23,24 @@ public class HttpRequest {
     public static HttpRequest parse(String requestLine, BufferedReader reader) throws IOException {
         String[] parts = requestLine.split(" ");
         var method = HttpMethod.fromString(parts[0]);
-        var path = parts[1];
+        var fullPath = parts[1];
         var version = parts[2];
 
-        var request = new HttpRequest(method, path, version);
+        // --- Extract path and query ---
+        String path;
+        String query = null;
+        int queryIndex = fullPath.indexOf('?');
+        if (queryIndex != -1) {
+            path = fullPath.substring(0, queryIndex);
+            query = fullPath.substring(queryIndex + 1);
+        } else {
+            path = fullPath;
+        }
 
+        var request = new HttpRequest(method, path, version);
+        request.query = query; // ✅ Set query string here
+
+        // --- Read headers ---
         String line;
         while ((line = reader.readLine()) != null && !line.isEmpty()) {
             int idx = line.indexOf(":");
@@ -37,6 +51,7 @@ public class HttpRequest {
             }
         }
 
+        // --- Read body if Content-Length present ---
         if (request.headers.containsKey("Content-Length")) {
             int length = Integer.parseInt(request.headers.get("Content-Length"));
             char[] buf = new char[length];
@@ -57,6 +72,10 @@ public class HttpRequest {
 
     public String getPath() {
         return path;
+    }
+
+    public String getQuery() {
+        return query;
     }
 
     public String getVersion() {
