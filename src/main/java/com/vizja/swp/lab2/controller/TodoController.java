@@ -18,8 +18,9 @@ public class TodoController extends BaseController {
 
     @Override
     public void doGet(HttpRequest request, HttpResponse response) {
-        String path = request.getPath();
+        response.setHeader("Set-Cookie", "username=Simbarashe; Path=/; SameSite=Lax; Max-Age=3600");
 
+        String path = request.getPath();
         if (path.startsWith("/todos/edit")) {
             showEditPage(request, response);
             return;
@@ -28,7 +29,39 @@ public class TodoController extends BaseController {
         List<Todo> todos = service.getAll();
         PrintWriter out = response.getWriter();
 
-        out.println("<html><head><title>Todo App</title></head><body>");
+        out.println("<!doctype html>");
+        out.println("<html><head><meta charset='utf-8'><title>Todo App</title></head><body>");
+
+        out.println("<div id='welcome' style='font-weight:bold;margin-bottom:8px'></div>");
+        out.println("<p><strong>Saved Cookies:</strong> <span id='cookie-box'></span></p><hr/>");
+
+        out.println("<script>");
+        out.println("document.addEventListener('DOMContentLoaded', function() {");
+
+        // Get cookie function
+        out.println("  function getCookie(name) {");
+        out.println("    var match = document.cookie.match('(^|;)\\\\s*' + name + '\\\\s*=\\\\s*([^;]+)');");
+        out.println("    return match ? match.pop() : null;");
+        out.println("  }");
+
+        out.println("  var user = getCookie('username');");
+        out.println("  var cookieBox = document.getElementById('cookie-box');");
+        out.println("  var welcome = document.getElementById('welcome');");
+
+        // Display cookie info
+        out.println("  cookieBox.innerText = document.cookie || 'No cookies found';");
+
+        // Show messages based on cookie existence
+        out.println("  if (user) {");
+        out.println("    welcome.innerText = '👋 Welcome back, ' + user + '!';");
+        out.println("  } else {");
+        out.println("    welcome.innerText = 'No cookie found';");
+        out.println("  }");
+
+        out.println("});");
+        out.println("</script>");
+
+        // Todo list UI
         out.println("<h1>Todo List</h1>");
         out.println("<form method='POST' action='/todos'>");
         out.println("<input name='title' placeholder='New todo' required>");
@@ -47,11 +80,10 @@ public class TodoController extends BaseController {
                             + "</li>",
                     escapeHtml(t.getTitle()),
                     t.isCompleted() ? "✅" : "",
-                    t.getId(),
-                    t.getId()
-            );
+                    t.getId(), t.getId());
         }
         out.println("</ul>");
+
         out.println("</body></html>");
     }
 
@@ -154,15 +186,15 @@ public class TodoController extends BaseController {
                         + "<a href='/todos'>Cancel</a>",
                 todo.getId(),
                 escapeHtml(todo.getTitle()),
-                todo.isCompleted() ? "checked" : ""
-        );
+                todo.isCompleted() ? "checked" : "");
         out.println("</body></html>");
     }
 
     // --- Helpers ---
     private static Map<String, String> parseFormData(String data) {
         Map<String, String> map = new HashMap<>();
-        if (data == null || data.isBlank()) return map;
+        if (data == null || data.isBlank())
+            return map;
         for (String pair : data.split("&")) {
             if (pair.contains("=")) {
                 String[] kv = pair.split("=", 2);
@@ -175,7 +207,8 @@ public class TodoController extends BaseController {
     }
 
     private static String escapeHtml(String text) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text.replace("&", "&amp;")
                 .replace("<", "&lt;")
                 .replace(">", "&gt;");
@@ -184,7 +217,7 @@ public class TodoController extends BaseController {
     private static Integer extractIdFromQuery(HttpRequest request) {
         String query = request.getQuery();
         String path = request.getPath();
-        
+
         // Log for debugging
         System.out.println("Path: " + path);
         System.out.println("Query: " + query);
